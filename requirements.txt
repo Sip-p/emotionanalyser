@@ -1,0 +1,14 @@
+# fastapi
+# uvicorn
+# pydantic
+# tensorflow-cpu
+# numpy
+# h5py
+
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+tensorflow==2.16.2
+keras==3.13.2
+numpy==1.26.4
+h5py==3.11.0
+pydantic==2.11.4

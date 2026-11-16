@@ -1,0 +1,875 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#100f25">
+    <title>EmotiSense | Emotion Detection</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --bg: #100f25;
+            --panel: rgba(255,255,255,0.065);
+            --border: rgba(255,255,255,0.12);
+            --muted: #a5a3bd;
+            --white: #f8f7ff;
+            --purple: #a78bfa;
+            --pink: #f0abfc;
+            --cyan: #67e8f9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: var(--white);
+            background:
+                radial-gradient(ellipse at 15% 10%, #30205d 0%, transparent 38%),
+                radial-gradient(ellipse at 85% 80%, #202e58 0%, transparent 35%),
+                var(--bg);
+            font-family: 'DM Sans', sans-serif;
+        }
+
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(75px);
+            opacity: 0.28;
+            pointer-events: none;
+            animation: float 10s ease-in-out infinite alternate;
+        }
+
+        .orb.one {
+            width: 260px;
+            height: 260px;
+            background: #9333ea;
+            top: 10%;
+            left: -100px;
+        }
+
+        .orb.two {
+            width: 300px;
+            height: 300px;
+            background: #0891b2;
+            bottom: -100px;
+            right: -100px;
+            animation-delay: -4s;
+        }
+
+        @keyframes float {
+            from { transform: translate(0, 0); }
+            to { transform: translate(45px, -35px); }
+        }
+
+        .container {
+            width: min(1100px, 92%);
+            margin: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            padding: 27px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.09);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 23px;
+            font-weight: 700;
+            letter-spacing: -0.7px;
+        }
+
+        .brand-icon {
+            width: 39px;
+            height: 39px;
+            display: grid;
+            place-items: center;
+            border-radius: 13px;
+            background: linear-gradient(135deg, #a78bfa, #ec4899);
+            font-size: 21px;
+            box-shadow: 0 5px 25px #a78bfa55;
+        }
+
+        .brand span {
+            background: linear-gradient(90deg, #c4b5fd, #f0abfc);
+            color: transparent;
+            background-clip: text;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #c5c2d8;
+            font-size: 12px;
+            padding: 9px 14px;
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            background: rgba(255,255,255,0.04);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #fbbf24;
+            border-radius: 50%;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .status.online .status-dot {
+            background: #4ade80;
+        }
+
+        .hero {
+            text-align: center;
+            padding: 65px 0 38px;
+            animation: appear .8s ease both;
+        }
+
+        .eyebrow {
+            display: inline-block;
+            padding: 8px 15px;
+            border: 1px solid #a78bfa55;
+            background: #a78bfa12;
+            color: #d8b4fe;
+            border-radius: 30px;
+            font-size: 12px;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(38px, 6vw, 64px);
+            line-height: 1.08;
+            letter-spacing: -2px;
+            font-weight: 700;
+        }
+
+        h1 span {
+            background: linear-gradient(90deg, #a78bfa, #f0abfc, #67e8f9);
+            color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            color: var(--muted);
+            max-width: 570px;
+            margin: 17px auto 0;
+            line-height: 1.8;
+            font-size: 15px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 0.85fr;
+            gap: 22px;
+            align-items: start;
+            padding-bottom: 55px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 23px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 60px #00000020;
+        }
+
+        .input-panel {
+            padding: 27px;
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 19px;
+        }
+
+        .section-heading h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 19px;
+            font-weight: 600;
+        }
+
+        .section-heading small {
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 190px;
+            resize: vertical;
+            padding: 19px;
+            color: white;
+            background: rgba(7,7,22,0.48);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            outline: none;
+            font-family: inherit;
+            font-size: 15px;
+            line-height: 1.7;
+            transition: border .25s, box-shadow .25s;
+        }
+
+        textarea::placeholder {
+            color: #77758f;
+        }
+
+        textarea:focus {
+            border-color: #a78bfa;
+            box-shadow: 0 0 0 4px #a78bfa18;
+        }
+
+        .input-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            color: #9290aa;
+            font-size: 11px;
+        }
+
+        .examples {
+            margin-top: 22px;
+        }
+
+        .examples-title {
+            color: #b9b6cc;
+            font-size: 12px;
+            margin-bottom: 11px;
+        }
+
+        .chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .chip {
+            border: 1px solid var(--border);
+            color: #d3d0e5;
+            background: rgba(255,255,255,0.04);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .chip:hover {
+            background: #a78bfa25;
+            border-color: #a78bfa;
+            transform: translateY(-2px);
+        }
+
+        .actions {
+            display: flex;
+            gap: 11px;
+            margin-top: 23px;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        .analyze-btn {
+            flex: 1;
+            padding: 14px 18px;
+            border: none;
+            border-radius: 13px;
+            color: #171329;
+            background: linear-gradient(100deg, #c4b5fd, #f0abfc);
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .25s;
+            box-shadow: 0 8px 25px #a78bfa30;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px #a78bfa50;
+        }
+
+        .analyze-btn:disabled {
+            cursor: not-allowed;
+            opacity: .65;
+            transform: none;
+        }
+
+        .reset-btn {
+            padding: 13px 17px;
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            background: rgba(255,255,255,.05);
+            color: #d3d0e5;
+            cursor: pointer;
+            transition: .2s;
+        }
+
+        .reset-btn:hover {
+            background: rgba(255,255,255,.12);
+        }
+
+        .result-panel {
+            padding: 27px;
+            min-height: 420px;
+        }
+
+        .empty-state {
+            min-height: 340px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--muted);
+        }
+
+        .empty-icon {
+            width: 105px;
+            height: 105px;
+            border-radius: 32px;
+            display: grid;
+            place-items: center;
+            font-size: 49px;
+            margin-bottom: 22px;
+            background: linear-gradient(135deg, #a78bfa20, #f0abfc20);
+            border: 1px solid #a78bfa35;
+            animation: breathe 3s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            50% { transform: scale(1.07); box-shadow: 0 0 35px #a78bfa25; }
+        }
+
+        .empty-state h3 {
+            color: #e8e5f5;
+            font-family: 'Outfit', sans-serif;
+            font-size: 19px;
+            margin-bottom: 9px;
+        }
+
+        .empty-state p {
+            max-width: 250px;
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .result-content {
+            display: none;
+            animation: appear .5s ease both;
+        }
+
+        .result-content.visible {
+            display: block;
+        }
+
+        .prediction {
+            text-align: center;
+            padding: 22px 10px 25px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #a78bfa16, #f0abfc12);
+            border: 1px solid #a78bfa35;
+            margin-bottom: 25px;
+        }
+
+        .prediction-emoji {
+            font-size: 55px;
+            display: block;
+            margin-bottom: 9px;
+            animation: pop .5s cubic-bezier(.2,1.5,.5,1) both;
+        }
+
+        @keyframes pop {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .prediction-label {
+            color: #aaa6c3;
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 1.7px;
+        }
+
+        .prediction h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 31px;
+            text-transform: capitalize;
+            margin: 7px 0;
+            background: linear-gradient(90deg, #c4b5fd, #f0abfc);
+            color: transparent;
+            background-clip: text;
+        }
+
+        .confidence {
+            color: #c9c5db;
+            font-size: 12px;
+        }
+
+        .confidence strong {
+            color: white;
+            font-size: 17px;
+        }
+
+        .probability-title {
+            display: flex;
+            justify-content: space-between;
+            color: #e5e2f1;
+            font-size: 13px;
+            margin-bottom: 18px;
+        }
+
+        .probability-row {
+            margin-bottom: 16px;
+        }
+
+        .probability-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-bottom: 7px;
+            color: #d1cee0;
+        }
+
+        .probability-info strong {
+            color: white;
+            font-weight: 600;
+        }
+
+        .track {
+            height: 8px;
+            border-radius: 10px;
+            background: rgba(255,255,255,.09);
+            overflow: hidden;
+        }
+
+        .bar {
+            height: 100%;
+            width: 0;
+            border-radius: 10px;
+            transition: width 1s cubic-bezier(.2,.8,.2,1);
+        }
+
+        .note {
+            color: #aaa6bf;
+            font-size: 11px;
+            line-height: 1.6;
+            margin-top: 18px;
+            padding: 12px;
+            border-radius: 10px;
+            background: rgba(255,255,255,.035);
+        }
+
+        .error {
+            display: none;
+            padding: 12px 14px;
+            border-radius: 11px;
+            color: #fecaca;
+            background: #ef444420;
+            border: 1px solid #ef444455;
+            margin-top: 15px;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .error.visible {
+            display: block;
+        }
+
+        .loader {
+            display: none;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+            color: #d8b4fe;
+            font-size: 12px;
+        }
+
+        .loader.visible {
+            display: flex;
+        }
+
+        .spinner {
+            width: 17px;
+            height: 17px;
+            border: 2px solid #a78bfa40;
+            border-top-color: #d8b4fe;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes appear {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        footer {
+            border-top: 1px solid rgba(255,255,255,.08);
+            text-align: center;
+            padding: 24px 0 30px;
+            color: #85829e;
+            font-size: 11px;
+        }
+
+        footer span {
+            color: #c4b5fd;
+        }
+
+        @media (max-width: 760px) {
+            .hero { padding: 48px 0 30px; }
+            .main-grid { grid-template-columns: 1fr; }
+            .result-panel { min-height: 380px; }
+            header { padding: 20px 0; }
+            .brand { font-size: 20px; }
+        }
+
+        @media (max-width: 420px) {
+            .status { font-size: 10px; padding: 8px 10px; }
+            .input-panel, .result-panel { padding: 19px; }
+            .actions { flex-direction: column; }
+            .reset-btn { padding: 13px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                transition-duration: .01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="orb one"></div>
+    <div class="orb two"></div>
+
+    <div class="container">
+        <header>
+            <div class="brand">
+                <div class="brand-icon">✦</div>
+                Emoti<span>Sense</span>
+            </div>
+
+            <div class="status" id="serverStatus">
+                <span class="status-dot"></span>
+                <span id="statusText">Checking server...</span>
+            </div>
+        </header>
+
+        <section class="hero">
+            <div class="eyebrow">✧ AI-powered emotion analysis</div>
+            <h1>Understand the <span>emotion</span><br>behind your words.</h1>
+            <p>
+                Every sentence carries a feeling. Enter your text and let
+                our BiGRU deep learning model explore the emotion behind it.
+            </p>
+        </section>
+
+        <main class="main-grid">
+            <section class="panel input-panel">
+                <div class="section-heading">
+                    <h2>✍️ Your message</h2>
+                    <small>Express yourself</small>
+                </div>
+
+                <textarea
+                    id="textInput"
+                    maxlength="2000"
+                    placeholder="Write something here...&#10;&#10;For example: Today was such a wonderful day. I feel grateful for everything!"
+                ></textarea>
+
+                <div class="input-meta">
+                    <span>Maximum 2,000 characters</span>
+                    <span id="charCount">0 / 2000</span>
+                </div>
+
+                <div class="examples">
+                    <div class="examples-title">✨ Try an example</div>
+                    <div class="chips">
+                        <button class="chip" data-text="I am so happy today!">😊 Happy</button>
+                        <button class="chip" data-text="I love my family so much.">❤️ Love</button>
+                        <button class="chip" data-text="I feel sad and lonely.">😢 Sad</button>
+                        <button class="chip" data-text="I am terrified of losing someone.">😨 Fear</button>
+                        <button class="chip" data-text="I cannot believe this happened!">😲 Surprise</button>
+                        <button class="chip" data-text="I am so angry about this situation.">😠 Anger</button>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button class="analyze-btn" id="analyzeBtn" onclick="analyzeEmotion()">
+                        ✨ Analyze emotion
+                    </button>
+                    <button class="reset-btn" onclick="resetApp()">↺ Reset</button>
+                </div>
+
+                <div class="loader" id="loader">
+                    <span class="spinner"></span>
+                    Analyzing your words...
+                </div>
+
+                <div class="error" id="errorBox"></div>
+            </section>
+
+            <section class="panel result-panel">
+                <div class="section-heading">
+                    <h2>🧠 Emotion analysis</h2>
+                    <small>Model results</small>
+                </div>
+
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">💭</div>
+                    <h3>Your results will appear here</h3>
+                    <p>Enter a sentence and click Analyze emotion to discover its predicted emotion.</p>
+                </div>
+
+                <div class="result-content" id="resultContent">
+                    <div class="prediction">
+                        <span class="prediction-emoji" id="predictionEmoji">😊</span>
+                        <div class="prediction-label">Predicted emotion</div>
+                        <h3 id="predictionLabel">Joy</h3>
+                        <div class="confidence">
+                            Confidence: <strong id="confidenceValue">0%</strong>
+                        </div>
+                    </div>
+
+                    <div class="probability-title">
+                        <span>Emotion probabilities</span>
+                        <span>All classes</span>
+                    </div>
+
+                    <div id="probabilityList"></div>
+
+                    <div class="note">
+                        💡 These percentages represent the model's predicted
+                        probabilities, not a definitive measurement of a person's feelings.
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            Built with <span>♥</span> using FastAPI & BiGRU Deep Learning
+            <br><br>
+            EmotiSense · Emotion Detection Project
+        </footer>
+    </div>
+
+    <script>
+        const input = document.getElementById("textInput");
+        const charCount = document.getElementById("charCount");
+        const analyzeBtn = document.getElementById("analyzeBtn");
+        const loader = document.getElementById("loader");
+        const errorBox = document.getElementById("errorBox");
+
+        const emotionInfo = {
+            sadness:  { emoji: "😢", color: "#60a5fa" },
+            joy:      { emoji: "😊", color: "#fbbf24" },
+            love:     { emoji: "❤️", color: "#f472b6" },
+            anger:    { emoji: "😠", color: "#fb7185" },
+            fear:     { emoji: "😨", color: "#a78bfa" },
+            surprise: { emoji: "😲", color: "#67e8f9" }
+        };
+
+        input.addEventListener("input", () => {
+            charCount.textContent = `${input.value.length} / 2000`;
+        });
+
+        document.querySelectorAll(".chip").forEach(button => {
+            button.addEventListener("click", () => {
+                input.value = button.dataset.text;
+                charCount.textContent = `${input.value.length} / 2000`;
+                input.focus();
+                hideError();
+            });
+        });
+
+        function showError(message) {
+            errorBox.textContent = message;
+            errorBox.classList.add("visible");
+        }
+
+        function hideError() {
+            errorBox.textContent = "";
+            errorBox.classList.remove("visible");
+        }
+
+        function setLoading(isLoading) {
+            analyzeBtn.disabled = isLoading;
+            analyzeBtn.textContent = isLoading ? "Analyzing..." : "✨ Analyze emotion";
+            loader.classList.toggle("visible", isLoading);
+        }
+
+        async function checkServer() {
+            const status = document.getElementById("serverStatus");
+            const statusText = document.getElementById("statusText");
+
+            try {
+                const response = await fetch("/health");
+                if (!response.ok) throw new Error("Server unavailable");
+
+                const data = await response.json();
+
+                if (!data.model_loaded) {
+                    throw new Error("Model is still loading");
+                }
+
+                status.classList.add("online");
+                statusText.textContent = "AI model online";
+            } catch (error) {
+                status.classList.remove("online");
+                statusText.textContent = "Server unavailable";
+            }
+        }
+
+        async function analyzeEmotion() {
+            const text = input.value.trim();
+
+            hideError();
+
+            if (!text) {
+                showError("Please enter a sentence before analyzing.");
+                input.focus();
+                return;
+            }
+
+            setLoading(true);
+
+            try {
+                const response = await fetch("/predict", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ text: text })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    const detail = typeof data.detail === "string"
+                        ? data.detail
+                        : "Unable to analyze this sentence.";
+                    throw new Error(detail);
+                }
+
+                displayResults(data);
+
+            } catch (error) {
+                showError(
+                    error.message || "Something went wrong. Please try again."
+                );
+            } finally {
+                setLoading(false);
+            }
+        }
+
+        function displayResults(data) {
+            const emotion = data.predicted_emotion;
+            const info = emotionInfo[emotion];
+
+            if (!info || !data.all_probabilities) {
+                showError("The server returned an unexpected response.");
+                return;
+            }
+
+            document.getElementById("emptyState").style.display = "none";
+            document.getElementById("resultContent").classList.add("visible");
+
+            document.getElementById("predictionEmoji").textContent = info.emoji;
+            document.getElementById("predictionLabel").textContent = emotion;
+            document.getElementById("confidenceValue").textContent =
+                `${(data.confidence * 100).toFixed(2)}%`;
+
+            const probabilityList = document.getElementById("probabilityList");
+            probabilityList.innerHTML = "";
+
+            const sortedResults = Object.entries(data.all_probabilities)
+                .sort((a, b) => b[1] - a[1]);
+
+            sortedResults.forEach(([label, probability], index) => {
+                const emotionData = emotionInfo[label];
+                if (!emotionData) return;
+
+                const percentage = Math.max(0, Math.min(100, probability * 100));
+
+                const row = document.createElement("div");
+                row.className = "probability-row";
+
+                const infoRow = document.createElement("div");
+                infoRow.className = "probability-info";
+
+                const name = document.createElement("span");
+                name.textContent = `${emotionData.emoji}  ${label}`;
+
+                const value = document.createElement("strong");
+                value.textContent = `${percentage.toFixed(2)}%`;
+
+                infoRow.append(name, value);
+
+                const track = document.createElement("div");
+                track.className = "track";
+
+                const bar = document.createElement("div");
+                bar.className = "bar";
+                bar.style.background = emotionData.color;
+
+                track.appendChild(bar);
+                row.append(infoRow, track);
+                probabilityList.appendChild(row);
+
+                setTimeout(() => {
+                    bar.style.width = `${percentage}%`;
+                }, 100 + index * 90);
+            });
+        }
+
+        function resetApp() {
+            input.value = "";
+            charCount.textContent = "0 / 2000";
+            hideError();
+
+            document.getElementById("resultContent").classList.remove("visible");
+            document.getElementById("emptyState").style.display = "flex";
+
+            setLoading(false);
+            input.focus();
+        }
+
+        input.addEventListener("keydown", event => {
+            if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+                analyzeEmotion();
+            }
+        });
+
+        checkServer();
+        setInterval(checkServer, 30000);
+    </script>
+</body>
+</html>
